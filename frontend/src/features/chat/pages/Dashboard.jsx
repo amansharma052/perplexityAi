@@ -1,0 +1,19 @@
+import React,{useEffect} from 'react'
+import { useSelector } from 'react-redux'
+import{useChat} from "../hooks/useChat"
+
+const Dashboard = () => {
+
+    const chat =useChat()
+    useEffect(()=>{chat.inilatizedSocketConnection},[])
+
+
+
+  return (
+    <div>
+      Dashboard
+    </div>
+  )
+}
+
+export default Dashboard
