@@ -5,6 +5,7 @@ import { loginValidator, registerValidator } from "../validators/auth.validator.
 
 const authRouter = Router();
 
+
 authRouter.post("/register", registerValidator, register);
 authRouter.post("/login",loginValidator,login)
 authRouter.get("/get-me",getMe)
