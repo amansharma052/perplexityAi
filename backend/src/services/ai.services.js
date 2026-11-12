@@ -1,31 +1,36 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
-import { HumanMessage } from "@langchain/core/messages"
-import { MistralAI } from "@langchain/mistralai"
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages"
+
 
 const geminiModel = new ChatGoogleGenerativeAI({
-    model: "gemini-3.8-flash",
-    apiKey:process.env.GOOGLE_API_KEY
-   
+    model: "gemini-3.5-flash-lite",
+    apiKey: process.env.GOOGLE_API_KEY
+
+})
+const titleModel = new ChatGoogleGenerativeAI({
+    model: "gemini-3.5-flash-lite",
+    apiKey: process.env.GOOGLE_TITLE_API_KEY
+
 })
 
-export async function generateResponse(message){
-    const response =await geminiModel.invoke([
-        new HumanMessage(message)
-    ])
+export async function generateResponse(message) {
+    console.log(message)
 
+    const response = await geminiModel.invoke(message.map(map=>{
+        if(message.role == "user"){
+            return new HumanMessage(message.content)
+        }else if(message.role=="ai"){
+            return new AIMessage(message.content)
+        }
+    }))
     return response.text
+
 }
-
-
-const mistralModel = new MistralAI({
-  model: "codestral-latest",
-  apiKey:process.env.MISTRAL_API_KEY
  
-})
+
 
 export async function generateChatTitle(message) {
-
-    const response = await mistralModel.invoke([
+    const response = await titleModel.invoke([
         new SystemMessage(`
             You are a helpful assistant that generates concise and descriptive titles for chat conversations.
             
@@ -36,7 +41,5 @@ export async function generateChatTitle(message) {
             "${message}"
             `)
     ])
-
-    return response.text;
 
 }
