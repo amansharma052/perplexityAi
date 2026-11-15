@@ -31,21 +31,31 @@ export const useChat = () => {
         dispatch(setCurrentChatId(chat._id))
     }
 
-    async function handleGetChats() {
-        dispatch(setLoading(true))
-        const data = await getChats()
-        const { chats } = data
+   async function handleGetChats() {
+    try {
+        dispatch(setLoading(true));
+
+        const data = await getChats();
+        const { chats } = data;
+
         dispatch(setChats(chats.reduce((acc, chat) => {
-            acc[ chat._id ] = {
+            acc[chat._id] = {
                 id: chat._id,
                 title: chat.title,
                 messages: [],
                 lastUpdated: chat.updatedAt,
-            }
-            return acc
-        }, {})))
-        dispatch(setLoading(false))
+            };
+
+            return acc;
+        }, {})));
+
+    } catch (error) {
+        console.log("Get Chats Error:", error.response?.data || error.message);
+        dispatch(setError(error.response?.data?.message || "Failed to fetch chats"));
+    } finally {
+        dispatch(setLoading(false));
     }
+}
 
     async function handleOpenChat(chatId, chats) {
 

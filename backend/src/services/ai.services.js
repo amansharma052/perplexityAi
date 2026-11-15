@@ -1,6 +1,8 @@
 
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
-import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages"
+import { HumanMessage, SystemMessage, AIMessage, tool, createAgent } from "langchain";
+import * as z from "zod";
+import { searchInternet } from "./internet.service.js"
 
 
 const geminiModel = new ChatGoogleGenerativeAI({
@@ -15,18 +17,46 @@ const titleModel = new ChatGoogleGenerativeAI({
 
 })
 
-export async function generateResponse(message) {
-    console.log(message)
+const searchInternetTool = tool(
+    searchInternet,
+    {
+        name: "searchInternet",
+        description: "Use this tool to get the latest information from the internet.",
+        schema: z.object({
+            query: z.string().describe("The search query to look up on the internet.")
+        })
+    }
+)
 
-    const response = await geminiModel.invoke(message.map(msg => {
-        if (msg.role == "user") {
-            return new HumanMessage(msg.content)
-        } else if (msg.role == "ai") {
-            return new AIMessage(msg.content)
-        }
-    }))
+const agent = createAgent({
+    model: titleModel,
+    tools: [ searchInternetTool ],
+})
 
-    return response.content
+
+
+
+export async function generateResponse(messages) {
+    console.log(messages)
+
+    const response = await agent.invoke({
+        messages: [
+            new SystemMessage(`
+                You are a helpful and precise assistant for answering questions.
+                If you don't know the answer, say you don't know. 
+                If the question requires up-to-date information, use the "searchInternet" tool to get the latest information from the internet and then answer based on the search results.
+            `),
+            ...(messages.map(msg => {
+                if (msg.role == "user") {
+                    return new HumanMessage(msg.content)
+                } else if (msg.role == "ai") {
+                    return new AIMessage(msg.content)
+                }
+            })) ]
+    });
+
+    return response.messages[ response.messages.length - 1 ].text;
+
 }
 
 
