@@ -1,3 +1,4 @@
+
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages"
 
@@ -7,6 +8,7 @@ const geminiModel = new ChatGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_API_KEY
 
 })
+
 const titleModel = new ChatGoogleGenerativeAI({
     model: "gemini-3.5-flash-lite",
     apiKey: process.env.GOOGLE_TITLE_API_KEY
@@ -16,17 +18,16 @@ const titleModel = new ChatGoogleGenerativeAI({
 export async function generateResponse(message) {
     console.log(message)
 
-    const response = await geminiModel.invoke(message.map(map=>{
-        if(message.role == "user"){
-            return new HumanMessage(message.content)
-        }else if(message.role=="ai"){
-            return new AIMessage(message.content)
+    const response = await geminiModel.invoke(message.map(msg => {
+        if (msg.role == "user") {
+            return new HumanMessage(msg.content)
+        } else if (msg.role == "ai") {
+            return new AIMessage(msg.content)
         }
     }))
-    return response.text
 
+    return response.content
 }
- 
 
 
 export async function generateChatTitle(message) {
